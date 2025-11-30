@@ -57,22 +57,32 @@ def start_backend(port: int) -> subprocess.Popen:
 
 
 def start_frontend(port: int) -> subprocess.Popen:
+    # On Windows, npm is a .cmd file, so we need shell=True or use npm.cmd
+    npm_cmd = "npm.cmd" if sys.platform == "win32" else "npm"
+
+    # Check if npm is available
+    try:
+        subprocess.run([npm_cmd, "--version"], capture_output=True, check=True)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        raise RuntimeError(
+            "npm is not installed or not in PATH. Please install Node.js from https://nodejs.org/"
+        )
+
     # Check if node_modules exists, if not run npm install first
     node_modules = FRONTEND_DIR / "node_modules"
     if not node_modules.exists():
         print(f"node_modules not found in {FRONTEND_DIR}, running npm install...")
         install_result = subprocess.run(
-            ["npm", "install"], cwd=str(FRONTEND_DIR), capture_output=False
+            [npm_cmd, "install"], cwd=str(FRONTEND_DIR), capture_output=False
         )
         if install_result.returncode != 0:
             raise RuntimeError(
                 f"npm install failed with code {install_result.returncode}"
             )
 
-    print("###### ", FRONTEND_DIR)
     # We pass through environment; vite will default to its own port (usually 5173)
     # If users want a different port they can pass it through npm scripts or env vars.
-    cmd = ["npm", "run", "dev"]
+    cmd = [npm_cmd, "run", "dev"]
     print(f"Starting frontend: {' '.join(cmd)} in {FRONTEND_DIR}")
     return subprocess.Popen(cmd, cwd=str(FRONTEND_DIR), env=os.environ.copy())
 
@@ -121,7 +131,7 @@ def main() -> int:
 
         # Optionally open the UI after a short delay so the dev server can start
         if args.open and run_frontend:
-            url = f"http://127.0.0.1:{args.ui_port}"
+            url = f"http://localhost:{args.ui_port}"
             print(f"Opening {url} in default browser...")
             # give the server a second to bind
             time.sleep(1.5)

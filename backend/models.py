@@ -4,8 +4,9 @@ from datetime import datetime
 
 Base = declarative_base()
 
+
 class PondLog(Base):
-    __tablename__ = 'pond_logs'
+    __tablename__ = "pond_logs"
     id = Column(Integer, primary_key=True)
     timestamp = Column(DateTime, default=datetime.utcnow)
     ph = Column(Float)
