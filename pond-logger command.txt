@@ -1,0 +1,5 @@
+cd /
+cd pythonprojects/pond-logger/frontend/pond-ui
+npx sv create my-app
+
+ You're all set!
