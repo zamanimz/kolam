@@ -50,6 +50,8 @@ def start_backend(port: int) -> subprocess.Popen:
     # Tell flask where the app is
     env["FLASK_APP"] = str(BACKEND_DIR / "app.py")
     env["PYTHONUNBUFFERED"] = "1"
+    # Enable Flask development mode so the reloader/debugger is active
+    env["FLASK_ENV"] = "development"
 
     cmd = [sys.executable, "-m", "flask", "run", "--host", "127.0.0.1", "--port", str(port)]
     print(f"Starting backend: {' '.join(cmd)} (FLASK_APP={env['FLASK_APP']})")
