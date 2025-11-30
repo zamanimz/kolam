@@ -12,8 +12,8 @@ This script is designed for Windows PowerShell and Unix shells.
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import os
-import signal
 import subprocess
 import sys
 import time
@@ -22,10 +22,30 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 BACKEND_DIR = ROOT / "backend"
-FRONTEND_DIR = ROOT / "frontend" / "pond-ui"
+FRONTEND_DIR = ROOT / "frontend"
 
 
 def start_backend(port: int) -> subprocess.Popen:
+    # Check if Flask is installed
+    if importlib.util.find_spec("flask") is None:
+        print("Error: Flask is not installed. Installing dependencies...")
+        install_result = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "pip",
+                "install",
+                "-r",
+                str(ROOT / "requirements.txt"),
+            ],
+            cwd=str(ROOT),
+            capture_output=False,
+        )
+        if install_result.returncode != 0:
+            raise RuntimeError(
+                f"pip install failed with code {install_result.returncode}"
+            )
+
     env = os.environ.copy()
     # Tell flask where the app is
     env["FLASK_APP"] = str(BACKEND_DIR / "app.py")
@@ -37,6 +57,19 @@ def start_backend(port: int) -> subprocess.Popen:
 
 
 def start_frontend(port: int) -> subprocess.Popen:
+    # Check if node_modules exists, if not run npm install first
+    node_modules = FRONTEND_DIR / "node_modules"
+    if not node_modules.exists():
+        print(f"node_modules not found in {FRONTEND_DIR}, running npm install...")
+        install_result = subprocess.run(
+            ["npm", "install"], cwd=str(FRONTEND_DIR), capture_output=False
+        )
+        if install_result.returncode != 0:
+            raise RuntimeError(
+                f"npm install failed with code {install_result.returncode}"
+            )
+
+    print("###### ", FRONTEND_DIR)
     # We pass through environment; vite will default to its own port (usually 5173)
     # If users want a different port they can pass it through npm scripts or env vars.
     cmd = ["npm", "run", "dev"]
