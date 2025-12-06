@@ -5,6 +5,7 @@
 
   export let logs: any[] = [];
   export let maxPoints = 48;
+  
 
   let canvasEl: HTMLCanvasElement;
   let chart: Chart | null = null;
