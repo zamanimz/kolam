@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import Chart from '$lib/Chart.svelte';
   let logs: any[] = [];
   let loading = true;
   let error: string | null = null;
@@ -56,6 +57,13 @@
         <h3>Temperature (°C)</h3>
         <div class="value">{latestLog.temp ?? 'N/A'}</div>
       </div>
+    </div>
+  {/if}
+
+  {#if logs.length > 0}
+    <div class="card">
+      <h2 style="margin-bottom: 1rem;">Trends</h2>
+      <Chart {logs} />
     </div>
   {/if}
 
